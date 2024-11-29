@@ -1,16 +1,6 @@
-public class BlackJack {
-/**
- * This plays the Blackjack card game that we wrote throughout
- * the videos in this lesson.
- *
- * Try to play the game and test it out. As you play it, can you think
- * of ways to improve the game? Can you think of ways to improve the code
- * or organize the code?
- *
- * @author jkeesh
- *
- */
+import java.util.Scanner;
 
+public class BlackJack {
     private static final int HEARTS = 0;
     private static final int DIAMONDS = 1;
     private static final int SPADES = 2;
@@ -21,192 +11,100 @@ public class BlackJack {
     private static final int KING = 13;
     private static final int ACE = 14;
 
-    // The starting bankroll for the player.
     private static final int STARTING_BANKROLL = 100;
 
-    /**
-     * Ask the player for a move, hit or stand.
-     *
-     * @return A lowercase string of "hit" or "stand"
-     * to indicate the player's move.
-     */
-    private String getPlayerMove()
-    {
-        while(true)
-        {
-            String move = readLine("Enter move (hit/stand): ");
-            move = move.toLowerCase();
+    private String getPlayerMove(Scanner scanner) {
+        while (true) {
+            System.out.print("Enter move (hit/stand): ");
+            String move = scanner.nextLine().toLowerCase();
 
-            if(move.equals("hit") || move.equals("stand"))
-            {
+            if (move.equals("hit") || move.equals("stand")) {
                 return move;
             }
-            System.out.println("Please try again.");
+            System.out.println("Invalid move. Please try again.");
         }
     }
 
-    /**
-     * Play the dealer's turn.
-     *
-     * The dealer must hit if the value of the hand is less
-     * than 17.
-     *
-     * @param dealer The hand for the dealer.
-     * @param deck The deck.
-     */
-    private void dealerTurn(Hand dealer, Deck deck)
-    {
-        while(true)
-        {
-            System.out.println("Dealer's hand");
+    private void dealerTurn(Hand dealer, Deck deck) {
+        while (true) {
+            System.out.println("Dealer's hand:");
             System.out.println(dealer);
 
             int value = dealer.getValue();
-            System.out.println("Dealer's hand has value " + value);
+            System.out.println("Dealer's hand has value: " + value);
 
-            readLine("Enter to continue...");
-
-            if(value < 17)
-            {
-                System.out.println("Dealer hits");
+            if (value < 17) {
+                System.out.println("Dealer hits.");
                 Card c = deck.deal();
                 dealer.addCard(c);
+                System.out.println("Dealer's card was: " + c);
 
-                System.out.println("Dealer card was " + c);
-
-                if(dealer.busted())
-                {
+                if (dealer.busted()) {
                     System.out.println("Dealer busted!");
                     break;
                 }
-            }
-            else
-            {
+            } else {
                 System.out.println("Dealer stands.");
                 break;
             }
         }
     }
 
-    /**
-     * Play a player turn by asking the player to hit
-     * or stand.
-     *
-     * Return whether or not the player busted.
-     */
-    private boolean playerTurn(Hand player, Deck deck)
-    {
-        while(true)
-        {
-            String move = getPlayerMove();
+    private boolean playerTurn(Hand player, Deck deck, Scanner scanner) {
+        while (true) {
+            String move = getPlayerMove(scanner);
 
-            if(move.equals("hit"))
-            {
+            if (move.equals("hit")) {
                 Card c = deck.deal();
                 System.out.println("Your card was: " + c);
                 player.addCard(c);
-                System.out.println("Player's hand");
+                System.out.println("Player's hand:");
                 System.out.println(player);
 
-                if(player.busted())
-                {
+                if (player.busted()) {
                     return true;
                 }
-            }
-            else
-            {
-                // If we didn't hit, the player chose to
-                // stand, which means the turn is over.
+            } else {
                 return false;
             }
-
         }
     }
 
-    /**
-     * Determine if the player wins.
-     *
-     * If the player busted, they lose. If the player did
-     * not bust but the dealer busted, the player wins.
-     *
-     * Then check the values of the hands.
-     *
-     * @param player The player hand.
-     * @param dealer The dealer hand.
-     * @return
-     */
-    private boolean playerWins(Hand player, Hand dealer)
-    {
-        if(player.busted())
-        {
+    private boolean playerWins(Hand player, Hand dealer) {
+        if (player.busted()) {
             return false;
         }
-
-        if(dealer.busted())
-        {
+        if (dealer.busted()) {
             return true;
         }
-
         return player.getValue() > dealer.getValue();
     }
 
-    /**
-     * Check if there was a push, which means the player and
-     * dealer tied.
-     *
-     * @param player The player hand.
-     * @param dealer The dealer hand.
-     * @return
-     */
-    private boolean push(Hand player, Hand dealer)
-    {
+    private boolean push(Hand player, Hand dealer) {
         return player.getValue() == dealer.getValue();
     }
 
-    /**
-     * Find the winner between the player hand and dealer
-     * hand. Return how much was won or lost.
-     */
-    private double findWinner(Hand dealer, Hand player, int bet)
-    {
-        if(playerWins(player, dealer))
-        {
+    private double findWinner(Hand dealer, Hand player, int bet) {
+        if (playerWins(player, dealer)) {
             System.out.println("Player wins!");
 
-            if(player.hasBlackjack())
-            {
+            if (player.hasBlackjack()) {
                 return 1.5 * bet;
             }
-
             return bet;
-        }
-        else if(push(player, dealer))
-        {
-            System.out.println("You push");
+        } else if (push(player, dealer)) {
+            System.out.println("It's a push!");
             return 0;
-        }
-        else
-        {
-            System.out.println("Dealer wins");
+        } else {
+            System.out.println("Dealer wins!");
             return -bet;
         }
     }
 
-    /**
-     * This plays a round of blackjack which includes:
-     * - Creating a deck
-     * - Creating the hands
-     * - Dealing the round
-     * - Playing the player turn
-     * - Playing the dealer turn
-     * - Finding the winner
-     *
-     * @param bankroll
-     * @return The new bankroll for the player.
-     */
-    private double playRound(double bankroll)
-    {
-        int bet = readInt("What is your bet? ");
+    private double playRound(double bankroll, Scanner scanner) {
+        System.out.print("What is your bet? ");
+        int bet = scanner.nextInt();
+        scanner.nextLine(); // Clear the buffer after nextInt()
 
         Deck deck = new Deck();
         deck.shuffle();
@@ -219,54 +117,42 @@ public class BlackJack {
         player.addCard(deck.deal());
         dealer.addCard(deck.deal());
 
-        System.out.println("Player's Hand");
+        System.out.println("Player's hand:");
         System.out.println(player);
 
-
-        System.out.println("Dealer's hand");
-        //System.out.println(dealer);
+        System.out.println("Dealer's hand:");
         dealer.printDealerHand();
 
-        boolean playerBusted = playerTurn(player, deck);
+        boolean playerBusted = playerTurn(player, deck, scanner);
 
-        if(playerBusted)
-        {
-            System.out.println("You busted :(");
+        if (playerBusted) {
+            System.out.println("You busted!");
+        } else {
+            dealerTurn(dealer, deck);
         }
 
-        readLine("Enter for dealer turn...");
-        dealerTurn(dealer, deck);
-
         double bankrollChange = findWinner(dealer, player, bet);
-
         bankroll += bankrollChange;
 
         System.out.println("New bankroll: " + bankroll);
-
         return bankroll;
     }
 
-    /**
-     * Play the blackjack game. Initialize the bankroll and keep
-     * playing roudns as long as the user wants to.
-     */
-    public void run()
-    {
+    public void run() {
         double bankroll = STARTING_BANKROLL;
+        Scanner scanner = new Scanner(System.in);
         System.out.println("Starting bankroll: " + bankroll);
 
-        while(true)
-        {
-            bankroll = playRound(bankroll);
+        while (true) {
+            bankroll = playRound(bankroll, scanner);
 
-            String playAgain = readLine("Would you like to play again? (Y/N)");
-            if(playAgain.equalsIgnoreCase("N"))
-            {
+            System.out.print("Would you like to play again? (Y/N): ");
+            String playAgain = scanner.nextLine();
+            if (playAgain.equalsIgnoreCase("N")) {
                 break;
             }
         }
 
         System.out.println("Thanks for playing!");
     }
-
 }
