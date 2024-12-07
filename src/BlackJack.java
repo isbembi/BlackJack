@@ -1,16 +1,6 @@
+import java.util.Scanner;
 public class BlackJack {
-/**
- * This plays the Blackjack card game that we wrote throughout
- * the videos in this lesson.
- *
- * Try to play the game and test it out. As you play it, can you think
- * of ways to improve the game? Can you think of ways to improve the code
- * or organize the code?
- *
- * @author jkeesh
- *
- */
-
+    Scanner scanner = new Scanner(System.in);
     private static final int HEARTS = 0;
     private static final int DIAMONDS = 1;
     private static final int SPADES = 2;
@@ -24,6 +14,18 @@ public class BlackJack {
     // The starting bankroll for the player.
     private static final int STARTING_BANKROLL = 100;
 
+
+    private  void  Rules (){
+        System.out.println("Number cards (2-10): Face value.\n" +
+                "Face cards (Jack-J, Queen-Q, King-K): 10 points each.\n" +
+                "Ace: Either 1 or 11 points, whichever benefits the hand more.\n"+
+                "H-Hearts ♥ " +
+                "D-Diamonds ♦" +
+                "S-Spades  ♠" +
+                "C-Clubs  ♣");
+
+    }
+
     /**
      * Ask the player for a move, hit or stand.
      *
@@ -34,7 +36,8 @@ public class BlackJack {
     {
         while(true)
         {
-            String move = readLine("Enter move (hit/stand): ");
+            System.out.println("Enter move (hit/stand): ");
+            String move = scanner.next();
             move = move.toLowerCase();
 
             if(move.equals("hit") || move.equals("stand"))
@@ -64,7 +67,7 @@ public class BlackJack {
             int value = dealer.getValue();
             System.out.println("Dealer's hand has value " + value);
 
-            readLine("Enter to continue...");
+            System.out.println("Enter to continue...");
 
             if(value < 17)
             {
@@ -91,7 +94,6 @@ public class BlackJack {
     /**
      * Play a player turn by asking the player to hit
      * or stand.
-     *
      * Return whether or not the player busted.
      */
     private boolean playerTurn(Hand player, Deck deck)
@@ -206,7 +208,8 @@ public class BlackJack {
      */
     private double playRound(double bankroll)
     {
-        int bet = readInt("What is your bet? ");
+        System.out.println("What is your bet? ");
+        int bet = scanner.nextInt();
 
         Deck deck = new Deck();
         deck.shuffle();
@@ -224,7 +227,6 @@ public class BlackJack {
 
 
         System.out.println("Dealer's hand");
-        //System.out.println(dealer);
         dealer.printDealerHand();
 
         boolean playerBusted = playerTurn(player, deck);
@@ -234,7 +236,6 @@ public class BlackJack {
             System.out.println("You busted :(");
         }
 
-        readLine("Enter for dealer turn...");
         dealerTurn(dealer, deck);
 
         double bankrollChange = findWinner(dealer, player, bet);
@@ -259,7 +260,8 @@ public class BlackJack {
         {
             bankroll = playRound(bankroll);
 
-            String playAgain = readLine("Would you like to play again? (Y/N)");
+            System.out.println("Would you like to play again? (Y/N)");
+            String playAgain = scanner.next();
             if(playAgain.equalsIgnoreCase("N"))
             {
                 break;
