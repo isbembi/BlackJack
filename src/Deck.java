@@ -12,16 +12,8 @@ public class Deck
     private static final int KING = 13;
     private static final int ACE = 14;
 
-    // Instance variables
-
-    // This stores the deck which is a list of the Card objects.
     private ArrayList<Card> deck;
 
-    /**
-     * This creates a Deck. A Deck starts as a list of 52 cards.
-     * We loop through each suit and rank and construct a card
-     * and add it to the deck.
-     */
     public Deck()
     {
         deck = new ArrayList<Card>();
@@ -36,29 +28,19 @@ public class Deck
         }
     }
 
-    // Getter method
 
-    /**
-     * This getter method returns the ArrayList of cards.
-     * @return ArrayList<Card> of the Cards.
-     */
     public ArrayList<Card> getCards()
     {
         return deck;
     }
 
-    /**
-     * This deals the first Card from the deck by removing it.
-     * @return The first Card in the deck.
-     */
+
     public Card deal()
     {
         return deck.remove(0);
     }
 
-    /**
-     * This prints out the current state of the deck.
-     */
+
     public void print()
     {
         for(Card card: deck)
@@ -67,10 +49,7 @@ public class Deck
         }
     }
 
-    /**
-     * This shuffles the deck by making 52 swaps of
-     * card positions.
-     */
+
     public void shuffle()
     {
         for(int i = 0; i < deck.size(); i++)

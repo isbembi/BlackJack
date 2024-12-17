@@ -1,4 +1,5 @@
 import java.util.Scanner;
+import java.util.Random;
 
 public class BlackJack {
     Scanner scanner = new Scanner(System.in);
@@ -16,15 +17,36 @@ public class BlackJack {
     private static final int STARTING_BANKROLL = 100;
 
     private int winStreak = 0; // Поле для отслеживания победной серии
+    private String currentMission = ""; // Текущая миссия
+    private boolean missionCompleted = false; // Статус выполнения миссии
+
+    Random random = new Random();
 
     private void Rules() {
         System.out.println("Number cards (2-10): Face value.\n" +
                 "Face cards (Jack-J, Queen-Q, King-K): 10 points each.\n" +
                 "Ace: Either 1 or 11 points, whichever benefits the hand more.\n" +
-                "H-Hearts ♥ " +
-                "D-Diamonds ♦" +
-                "S-Spades  ♠" +
-                "C-Clubs  ♣");
+                "H-Hearts♥  " +
+                "D-Diamonds♦  " +
+                "S-Spades♠  " +
+                "C-Clubs♣  ");
+    }
+
+    private void generateMission() {
+        int missionType = random.nextInt(3);
+        switch (missionType) {
+            case 0:
+                currentMission = "Win a round with all cards less than 10";
+                break;
+            case 1:
+                currentMission = "Win a round by getting exactly 21";
+                break;
+            case 2:
+                currentMission = "Reach a bankroll of 500";
+                break;
+        }
+        missionCompleted = false;
+        System.out.println("New Mission: " + currentMission);
     }
 
     private String getPlayerMove() {
@@ -114,7 +136,7 @@ public class BlackJack {
                 bet *= 2; // Удваиваем выигрыш
             }
             if (winStreak >= 5) {
-                System.out.println("Player have won 5 or more rounds in a row. Winnings are tripled!");
+                System.out.println("Player has won 5 or more rounds in a row. Winnings are tripled!");
                 bet *= 3;
             }
 
@@ -130,6 +152,19 @@ public class BlackJack {
             System.out.println("Dealer wins");
             winStreak = 0;
             return -bet;
+        }
+    }
+
+    private void checkMission(Hand player, double bankroll) {
+        if (currentMission.equals("Win a round with all cards less than 10") && player.allCardsLessThan(10)) {
+            System.out.println("Mission Completed: Win with all cards less than 10!");
+            missionCompleted = true;
+        } else if (currentMission.equals("Win a round by getting exactly 21") && player.getValue() == 21) {
+            System.out.println("Mission Completed: You got exactly 21!");
+            missionCompleted = true;
+        } else if (currentMission.equals("Reach a bankroll of 500") && bankroll >= 500) {
+            System.out.println("Mission Completed: You reached a bankroll of 500!");
+            missionCompleted = true;
         }
     }
 
@@ -163,32 +198,32 @@ public class BlackJack {
         dealerTurn(dealer, deck);
 
         double bankrollChange = findWinner(dealer, player, bet);
-
         bankroll += bankrollChange;
-        if(bankroll==0){
-            System.out.println("Sorry, your bankroll is empty , you lose :( ");
+
+        checkMission(player, bankroll);
+
+        if (bankroll == 0) {
+            System.out.println("Sorry, your bankroll is empty, you lose :( ");
             System.exit(0);
         }
 
         System.out.println("New bankroll: " + bankroll);
-        System.out.println("Current Win Streak: " + winStreak); // Показываем текущую серию побед
-
+        System.out.println("Current Win Streak: " + winStreak);
         return bankroll;
     }
 
     public void run() {
+        Rules();
         double bankroll = STARTING_BANKROLL;
         System.out.println("Starting bankroll: " + bankroll);
+        generateMission();
 
-        while (true) {
+        while (!missionCompleted) {
             bankroll = playRound(bankroll);
-
-            System.out.println("Would you like to play again? (Y/N)");
-            String playAgain = scanner.next();
-            if (playAgain.equalsIgnoreCase("N")) {
-                break;
-            }
         }
+
+        System.out.println("Congratulations! You completed the mission: " + currentMission);
+        System.out.println("Final bankroll: " + bankroll);
         System.out.println("Thanks for playing!");
     }
 }
