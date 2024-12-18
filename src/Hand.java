@@ -96,6 +96,22 @@ public class Hand
         }
         return true;
     }
+    public boolean allCardsBelow(int threshold) {
+        for (Card card : cards) {
+            if (card.getValue() >= threshold) {
+                return false;
+            }
+        }
+        return true;
+    }
+    public void removeLastCard() {
+        if (!cards.isEmpty()) {
+            cards.remove(cards.size() - 1);
+        } else {
+            System.out.println("No cards to remove.");
+        }
+    }
+
 
 
     public String toString()

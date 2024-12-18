@@ -1,35 +1,22 @@
-import java.util.Scanner;
-import java.util.Random;
+import java.util.*;
 
 public class BlackJack {
     Scanner scanner = new Scanner(System.in);
-    private static final int HEARTS = 0;
-    private static final int DIAMONDS = 1;
-    private static final int SPADES = 2;
-    private static final int CLUBS = 3;
+    private static final int STARTING_BANKROLL = 250;
 
-    private static final int JACK = 11;
-    private static final int QUEEN = 12;
-    private static final int KING = 13;
-    private static final int ACE = 14;
+    private int winStreak = 0;
+    private String currentMission = "";
+    private boolean missionCompleted = false;
 
-    // The starting bankroll for the player.
-    private static final int STARTING_BANKROLL = 100;
-
-    private int winStreak = 0; // Поле для отслеживания победной серии
-    private String currentMission = ""; // Текущая миссия
-    private boolean missionCompleted = false; // Статус выполнения миссии
-
+    private List<String> bonusCards = new ArrayList<>();
     Random random = new Random();
 
     private void Rules() {
-        System.out.println("Number cards (2-10): Face value.\n" +
-                "Face cards (Jack-J, Queen-Q, King-K): 10 points each.\n" +
-                "Ace: Either 1 or 11 points, whichever benefits the hand more.\n" +
-                "H-Hearts♥  " +
-                "D-Diamonds♦  " +
-                "S-Spades♠  " +
-                "C-Clubs♣  ");
+        System.out.println("Welcome to BlackJack! Here are the rules:");
+        System.out.println("- Number cards (2-10): Face value.");
+        System.out.println("- Face cards (Jack, Queen, King): 10 points each.");
+        System.out.println("- Ace: Either 1 or 11 points, whichever benefits the hand more.");
+        System.out.println("- Bonus cards can be purchased to gain advantages during the game!");
     }
 
     private void generateMission() {
@@ -49,122 +36,149 @@ public class BlackJack {
         System.out.println("New Mission: " + currentMission);
     }
 
-    private String getPlayerMove() {
-        while (true) {
-            System.out.println("Enter move (hit/stand): ");
-            String move = scanner.next();
-            move = move.toLowerCase();
+    private double visitBonusCardShop(double bankroll) {
+        System.out.println("Welcome to the Bonus Card Shop!");
+        System.out.println("Your current bankroll: " + bankroll);
+        System.out.println("Available cards:");
+        System.out.println("1. Freeze Dealer (50): Prevent the dealer from playing their turn.");
+        System.out.println("2. Extra Card (30): Draw an additional card during your turn.");
+        System.out.println("3. Undo Last Card (40): Remove the last card you drew.");
+        System.out.println("Enter the number of the card to buy or 0 to exit:");
 
-            if (move.equals("hit") || move.equals("stand")) {
-                return move;
+        int choice = scanner.nextInt();
+        switch (choice) {
+            case 1:
+                if (bankroll >= 50) {
+                    bonusCards.add("Freeze Dealer");
+                    bankroll -= 50;
+                    System.out.println("You purchased 'Freeze Dealer'!");
+                } else {
+                    System.out.println("Not enough bankroll!");
+                }
+                break;
+            case 2:
+                if (bankroll >= 30) {
+                    bonusCards.add("Extra Card");
+                    bankroll -= 30;
+                    System.out.println("You purchased 'Extra Card'!");
+                } else {
+                    System.out.println("Not enough bankroll!");
+                }
+                break;
+            case 3:
+                if (bankroll >= 40) {
+                    bonusCards.add("Undo Last Card");
+                    bankroll -= 40;
+                    System.out.println("You purchased 'Undo Last Card'!");
+                } else {
+                    System.out.println("Not enough bankroll!");
+                }
+                break;
+            case 0:
+                System.out.println("Exiting the shop.");
+                break;
+            default:
+                System.out.println("Invalid choice!");
+        }
+        return bankroll;
+    }
+
+    private boolean useBonusCard(Hand player, Hand dealer, Deck deck) {
+        if (bonusCards.isEmpty()) {
+            System.out.println("You have no bonus cards available.");
+            return false;
+        }
+
+        System.out.println("Available bonus cards: " + bonusCards);
+        System.out.println("Enter the name of the card to use or 'none' to skip:");
+        scanner.nextLine(); // Consume newline
+        String choice = scanner.nextLine();
+
+        if (choice.equalsIgnoreCase("Freeze Dealer")) {
+            bonusCards.remove("Freeze Dealer");
+            System.out.println("You used 'Freeze Dealer'. The dealer skips their turn!");
+            return true; // Dealer skips their turn
+        } else if (choice.equalsIgnoreCase("Extra Card")) {
+            bonusCards.remove("Extra Card");
+            System.out.println("You used 'Extra Card'. Drawing one more card...");
+            player.addCard(deck.deal());
+            System.out.println(player);
+            return false;
+        } else if (choice.equalsIgnoreCase("Undo Last Card")) {
+            bonusCards.remove("Undo Last Card");
+            System.out.println("You used 'Undo Last Card'. Removing the last card...");
+            player.removeLastCard();
+            System.out.println(player);
+            return false;
+        } else if (choice.equalsIgnoreCase("none")) {
+            System.out.println("You chose not to use a bonus card.");
+            return false;
+        } else {
+            System.out.println("Invalid choice.");
+            return false;
+        }
+    }
+
+    private String getPlayerMove() {
+        System.out.println("Do you want to 'hit' or 'stand'?");
+        while (true) {
+            String move = scanner.next();
+            if (move.equalsIgnoreCase("hit") || move.equalsIgnoreCase("stand")) {
+                return move.toLowerCase();
             }
-            System.out.println("Please try again.");
+            System.out.println("Invalid move. Please enter 'hit' or 'stand'.");
         }
     }
 
     private void dealerTurn(Hand dealer, Deck deck) {
-        while (true) {
-            System.out.println("Dealer's hand");
-            System.out.println(dealer);
-
-            int value = dealer.getValue();
-            System.out.println("Dealer's hand has value " + value);
-
-            System.out.println("Enter to continue...");
-
-            if (value < 17) {
-                System.out.println("Dealer hits");
-                Card c = deck.deal();
-                dealer.addCard(c);
-
-                System.out.println("Dealer card was " + c);
-
-                if (dealer.busted()) {
-                    System.out.println("Dealer busted!");
-                    break;
-                }
-            } else {
-                System.out.println("Dealer stands.");
-                break;
-            }
+        System.out.println("Dealer's turn...");
+        while (dealer.getValue() < 17) {
+            Card c = deck.deal();
+            dealer.addCard(c);
+            System.out.println("Dealer drew: " + c);
         }
-    }
-
-    private boolean playerTurn(Hand player, Deck deck) {
-        while (true) {
-            String move = getPlayerMove();
-
-            if (move.equals("hit")) {
-                Card c = deck.deal();
-                System.out.println("Your card was: " + c);
-                player.addCard(c);
-                System.out.println("Player's hand");
-                System.out.println(player);
-
-                if (player.busted()) {
-                    return true;
-                }
-            } else {
-                return false;
-            }
-        }
-    }
-
-    private boolean playerWins(Hand player, Hand dealer) {
-        if (player.busted()) {
-            return false;
-        }
-
-        if (dealer.busted()) {
-            return true;
-        }
-
-        return player.getValue() > dealer.getValue();
-    }
-
-    private boolean push(Hand player, Hand dealer) {
-        return player.getValue() == dealer.getValue();
+        System.out.println("Dealer's final hand:");
+        System.out.println(dealer);
     }
 
     private double findWinner(Hand dealer, Hand player, int bet) {
-        if (playerWins(player, dealer)) {
-            System.out.println("Player wins!");
+        int playerValue = player.getValue();
+        int dealerValue = dealer.getValue();
 
+        if (playerValue > 21) {
+            System.out.println("Player busted. You lose the bet!");
+            return -bet;
+        } else if (dealerValue > 21 || playerValue > dealerValue) {
+            System.out.println("You win!");
             winStreak++;
-            if (winStreak >= 3) {
-                System.out.println("BONUS! You’ve won three or more rounds in a row. Winnings are doubled!");
-                bet *= 2; // Удваиваем выигрыш
-            }
-            if (winStreak >= 5) {
-                System.out.println("Player has won 5 or more rounds in a row. Winnings are tripled!");
-                bet *= 3;
-            }
-
-            if (player.hasBlackjack()) {
-                return 1.5 * bet;
-            }
             return bet;
-        } else if (push(player, dealer)) {
-            System.out.println("You push");
-            winStreak = 0;
+        } else if (playerValue == dealerValue) {
+            System.out.println("It's a push! Your bet is returned.");
             return 0;
         } else {
-            System.out.println("Dealer wins");
+            System.out.println("Dealer wins. You lose the bet!");
             winStreak = 0;
             return -bet;
         }
     }
 
     private void checkMission(Hand player, double bankroll) {
-        if (currentMission.equals("Win a round with all cards less than 10") && player.allCardsLessThan(10)) {
-            System.out.println("Mission Completed: Win with all cards less than 10!");
-            missionCompleted = true;
-        } else if (currentMission.equals("Win a round by getting exactly 21") && player.getValue() == 21) {
-            System.out.println("Mission Completed: You got exactly 21!");
-            missionCompleted = true;
-        } else if (currentMission.equals("Reach a bankroll of 500") && bankroll >= 500) {
-            System.out.println("Mission Completed: You reached a bankroll of 500!");
-            missionCompleted = true;
+        switch (currentMission) {
+            case "Win a round with all cards less than 10":
+                if (player.allCardsBelow(10)) {
+                    missionCompleted = true;
+                }
+                break;
+            case "Win a round by getting exactly 21":
+                if (player.getValue() == 21) {
+                    missionCompleted = true;
+                }
+                break;
+            case "Reach a bankroll of 500":
+                if (bankroll >= 500) {
+                    missionCompleted = true;
+                }
+                break;
         }
     }
 
@@ -189,10 +203,25 @@ public class BlackJack {
         System.out.println("Dealer's hand");
         dealer.printDealerHand();
 
-        boolean playerBusted = playerTurn(player, deck);
+        while (true) {
+            if (useBonusCard(player, dealer, deck)) {
+                break; // Dealer skips their turn if 'Freeze Dealer' was used
+            }
 
-        if (playerBusted) {
-            System.out.println("You busted :(");
+            String move = getPlayerMove();
+            if (move.equals("hit")) {
+                Card c = deck.deal();
+                System.out.println("Your card was: " + c);
+                player.addCard(c);
+                System.out.println(player);
+
+                if (player.busted()) {
+                    System.out.println("You busted :(");
+                    return bankroll - bet;
+                }
+            } else {
+                break;
+            }
         }
 
         dealerTurn(dealer, deck);
@@ -201,11 +230,6 @@ public class BlackJack {
         bankroll += bankrollChange;
 
         checkMission(player, bankroll);
-
-        if (bankroll == 0) {
-            System.out.println("Sorry, your bankroll is empty, you lose :( ");
-            System.exit(0);
-        }
 
         System.out.println("New bankroll: " + bankroll);
         System.out.println("Current Win Streak: " + winStreak);
@@ -219,6 +243,7 @@ public class BlackJack {
         generateMission();
 
         while (!missionCompleted) {
+            bankroll = visitBonusCardShop(bankroll);
             bankroll = playRound(bankroll);
         }
 
